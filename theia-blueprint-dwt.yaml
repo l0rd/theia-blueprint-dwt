@@ -1,0 +1,58 @@
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspaceTemplate
+metadata:
+  name: theia-blueprint
+spec:
+  commands:
+    - id: init-container-command
+      apply:
+        component: che-code-injector
+  events:
+    preStart:
+      - init-container-command
+  components:
+    - name: main-container-contrib
+      attributes:
+        app.kubernetes.io/component: theia-runtime
+        app.kubernetes.io/part-of: theia.eclipse.org
+        controller.devfile.io/container-contribution: true
+      container:
+        image: noop/will/be/ignored
+        command:
+          # TODO - /theia/bootstrap-theia.sh
+        volumeMounts:
+          - name: theia-exec
+            path: /theia-exec
+        memoryLimit: 1024Mi
+        memoryRequest: 256Mi
+        cpuLimit: 500m
+        cpuRequest: 30m
+        env:
+          # TODO
+          # - name: THEIA_HOST
+          #   value: "0.0.0.0"
+        endpoints:
+          - name: theia
+            attributes:
+              type: main
+              cookiesAuthEnabled: true
+              discoverable: false
+              urlRewriteSupported: true
+            # TODO targetPort: 3100
+            exposure: public
+            secure: false
+            protocol: https
+    - name: theia-exec
+      volume: {}
+    - name: che-code-injector
+      container:
+        # TODO image: quay.io/mloriedo/theia-blueprint-exec:latest
+        command:
+          # TODO - /copy-theia-exec.sh
+        volumeMounts:
+          - name: theia-exec
+            path: /theia-exec
+        memoryLimit: 128Mi
+        memoryRequest: 32Mi
+        cpuLimit: 500m
+        cpuRequest: 30m
